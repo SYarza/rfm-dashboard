@@ -79,7 +79,6 @@ app.layout = html.Div([
     dcc.Tabs([
         # Pestaña de Análisis RFM
         dcc.Tab(label='Análisis RFM', children=[
-            # Mover todo el contenido RFM existente aquí
             html.Div([
                 # Selector de segmento y tabla
                 html.Div([
@@ -109,11 +108,83 @@ app.layout = html.Div([
                     ], style={'margin': '20px 0'})
                 ], style={'margin': '20px', 'textAlign': 'center'}),
 
-                # Resto de componentes RFM existentes...
-                html.Div([html.H3('Resumen de Segmentos'), ...]),
-                html.Div([dcc.Graph(...), ...]),
-                html.Div([dcc.Graph(...), ...]),
-                html.Div([html.H3('Estadísticas Detalladas por Segmento'), ...])
+                # Resumen de métricas RFM
+                html.Div([
+                    html.H3('Resumen de Segmentos'),
+                    html.Div([
+                        html.Div([
+                            html.H4('Total de Clientes'),
+                            html.H2(f"{len(rfm):,}")
+                        ], className='metric-card'),
+                        html.Div([
+                            html.H4('Valor Total'),
+                            html.H2(f"${rfm['monetary'].sum():,.2f}")
+                        ], className='metric-card'),
+                        html.Div([
+                            html.H4('Promedio por Cliente'),
+                            html.H2(f"${rfm['monetary'].mean():,.2f}")
+                        ], className='metric-card')
+                    ], style={'display': 'flex', 'justifyContent': 'space-around'})
+                ]),
+
+                # Gráficas RFM
+                html.Div([
+                    dcc.Graph(
+                        figure=create_bar_chart(
+                            segmento_stats.reset_index(),
+                            'Segmento',
+                            'monetary',
+                            'Valor Monetario por Segmento'
+                        ),
+                        style={'width': '50%'}
+                    ),
+                    dcc.Graph(
+                        figure=create_radar_chart(),
+                        style={'width': '50%'}
+                    )
+                ], style={'display': 'flex'}),
+
+                html.Div([
+                    dcc.Graph(
+                        figure=create_bar_chart(
+                            segmento_stats.reset_index(),
+                            'Segmento',
+                            'frequency',
+                            'Frecuencia de Compras por Segmento'
+                        ),
+                        style={'width': '50%'}
+                    ),
+                    dcc.Graph(
+                        figure=create_bar_chart(
+                            segmento_stats.reset_index(),
+                            'Segmento',
+                            'recency',
+                            'Días desde Última Compra por Segmento'
+                        ),
+                        style={'width': '50%'}
+                    )
+                ], style={'display': 'flex'}),
+
+                # Tabla de estadísticas RFM
+                html.Div([
+                    html.H3('Estadísticas Detalladas por Segmento'),
+                    dcc.Graph(
+                        figure=go.Figure(data=[
+                            go.Table(
+                                header=dict(values=['Segmento', 'Recency (días)', 'Frequency (compras)', 'Monetary ($)'],
+                                          fill_color='paleturquoise',
+                                          align='left'),
+                                cells=dict(values=[
+                                    segmento_stats.index,
+                                    segmento_stats['recency'].round(1),
+                                    segmento_stats['frequency'].round(1),
+                                    segmento_stats['monetary'].round(2)
+                                ],
+                                fill_color='lavender',
+                                align='left'))
+                        ])
+                    )
+                ])
             ])
         ]),
         
