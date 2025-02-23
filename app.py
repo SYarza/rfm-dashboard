@@ -65,6 +65,48 @@ def create_radar_chart():
 app.layout = html.Div([
     html.H1('Dashboard de Análisis RFM', style={'textAlign': 'center'}),
     
+    # Agregar selector de segmento
+    html.Div([
+        html.H3('Seleccionar Segmento'),
+        dcc.Dropdown(
+            id='segment-selector',
+            options=[{'label': seg, 'value': seg} for seg in rfm['Segmento'].unique()],
+            value='Champions',  # valor inicial
+            style={'width': '50%', 'margin': '10px auto'}
+        ),
+        
+        # Tabla de clientes por segmento
+        html.Div([
+            html.H3('Clientes del Segmento'),
+            dash.dash_table.DataTable(
+                id='customer-table',
+                columns=[
+                    {'name': 'ID Cliente', 'id': 'customer_id'},
+                    {'name': 'Días desde última compra', 'id': 'recency'},
+                    {'name': 'Frecuencia de compras', 'id': 'frequency'},
+                    {'name': 'Valor total ($)', 'id': 'monetary'}
+                ],
+                style_table={'overflowX': 'auto'},
+                style_cell={
+                    'textAlign': 'left',
+                    'padding': '10px',
+                    'minWidth': '100px'
+                },
+                style_header={
+                    'backgroundColor': 'paleturquoise',
+                    'fontWeight': 'bold'
+                },
+                style_data_conditional=[
+                    {
+                        'if': {'row_index': 'odd'},
+                        'backgroundColor': 'rgb(248, 248, 248)'
+                    }
+                ],
+                page_size=10  # número de filas por página
+            )
+        ], style={'margin': '20px 0'})
+    ], style={'margin': '20px', 'textAlign': 'center'}),
+    
     # Resumen de métricas
     html.Div([
         html.H3('Resumen de Segmentos'),
@@ -144,6 +186,24 @@ app.layout = html.Div([
         )
     ])
 ])
+
+# Agregar callback para actualizar la tabla
+@app.callback(
+    Output('customer-table', 'data'),
+    Input('segment-selector', 'value')
+)
+def update_table(selected_segment):
+    if selected_segment is None:
+        return []
+    
+    filtered_df = rfm[rfm['Segmento'] == selected_segment].copy()
+    filtered_df = filtered_df.round({
+        'recency': 1,
+        'frequency': 0,
+        'monetary': 2
+    })
+    
+    return filtered_df.to_dict('records')
 
 # Agregar estilos CSS
 app.index_string = '''
