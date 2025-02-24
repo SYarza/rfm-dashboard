@@ -349,7 +349,7 @@ app.layout = html.Div([
                     )
                 ]),
                 
-                # Tabla detallada
+                # Tabla detallada (actualizada)
                 html.Div([
                     html.H3('Detalles por Producto'),
                     dash_table.DataTable(
@@ -366,8 +366,14 @@ app.layout = html.Div([
                         data=pd.merge(
                             calculate_abc_analysis(df_transacciones),
                             calculate_bcg_analysis(df_transacciones),
-                            on='product_id'
-                        ).to_dict('records'),
+                            on='product_id',
+                            suffixes=('_abc', '')
+                        ).round({
+                            'total_amount': 2,
+                            'margin': 2,
+                            'market_share': 4,
+                            'growth_rate': 1
+                        }).to_dict('records'),
                         style_table={'overflowX': 'auto'},
                         style_cell={'textAlign': 'left', 'padding': '10px'},
                         style_header={'backgroundColor': 'paleturquoise', 'fontWeight': 'bold'},
