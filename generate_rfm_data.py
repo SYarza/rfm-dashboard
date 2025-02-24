@@ -25,16 +25,16 @@ for i in range(n_products):
     # Asignar diferentes rangos de precios según la categoría deseada
     if i < n_products * 0.2:  # 20% Estrellas
         precio = round(random.uniform(2000, 5000), 2)  # Productos premium
-        market_weight = 2.0  # Mayor peso en selección para ventas
+        market_weight = 2.5  # Mayor peso para asegurar alta participación
     elif i < n_products * 0.4:  # 20% Vacas
         precio = round(random.uniform(1000, 3000), 2)  # Productos establecidos
-        market_weight = 1.5  # Peso medio-alto en selección
+        market_weight = 2.0  # Peso alto para asegurar alta participación
     elif i < n_products * 0.7:  # 30% Interrogantes
         precio = round(random.uniform(500, 2000), 2)  # Productos nuevos
-        market_weight = 0.5  # Peso bajo en selección
+        market_weight = 0.5  # Peso bajo
     else:  # 30% Perros
         precio = round(random.uniform(100, 1000), 2)  # Productos económicos
-        market_weight = 0.3  # Peso muy bajo en selección
+        market_weight = 0.3  # Peso muy bajo
     
     costo = round(precio * random.uniform(0.4, 0.8), 2)
     products[prod_id] = {

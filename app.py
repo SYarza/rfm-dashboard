@@ -113,21 +113,21 @@ def calculate_bcg_analysis(df):
     growth_rates = []
     for i in range(n_products):
         if i < n_products * 0.2:  # Estrellas
-            growth_rates.append(random.uniform(15, 40))  # Alto crecimiento
+            growth_rates.append(random.uniform(20, 40))  # Alto crecimiento
         elif i < n_products * 0.4:  # Vacas
-            growth_rates.append(random.uniform(-5, 10))  # Bajo crecimiento
+            growth_rates.append(random.uniform(-10, 5))  # Bajo crecimiento
         elif i < n_products * 0.7:  # Interrogantes
-            growth_rates.append(random.uniform(15, 35))  # Alto crecimiento
+            growth_rates.append(random.uniform(20, 35))  # Alto crecimiento
         else:  # Perros
-            growth_rates.append(random.uniform(-20, 5))  # Bajo o negativo crecimiento
+            growth_rates.append(random.uniform(-20, 0))  # Crecimiento negativo
     
     product_metrics['growth_rate'] = growth_rates
     
     # Ajustar umbrales para clasificación
     product_metrics['bcg_category'] = product_metrics.apply(
-        lambda x: 'Estrella' if x['market_share'] >= 0.05 and x['growth_rate'] >= 15
-        else ('Vaca' if x['market_share'] >= 0.05 and x['growth_rate'] < 15
-        else ('Interrogante' if x['market_share'] < 0.05 and x['growth_rate'] >= 15
+        lambda x: 'Estrella' if x['market_share'] >= 0.03 and x['growth_rate'] >= 20
+        else ('Vaca' if x['market_share'] >= 0.03 and x['growth_rate'] < 10
+        else ('Interrogante' if x['market_share'] < 0.03 and x['growth_rate'] >= 20
         else 'Perro')), axis=1
     )
     
