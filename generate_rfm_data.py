@@ -20,6 +20,18 @@ products = {
     for i in range(n_products)
 }
 
+# Después de crear products, agregar categorías y costos
+product_categories = ['A', 'B', 'C']
+for prod_id in products:
+    # Agregar costo (entre 40% y 80% del precio)
+    precio = products[prod_id]
+    costo = round(precio * random.uniform(0.4, 0.8), 2)
+    products[prod_id] = {
+        'precio': precio,
+        'costo': costo,
+        'categoria': random.choice(product_categories)
+    }
+
 # Generar fechas aleatorias en los últimos 2 años
 end_date = datetime.now()
 start_date = end_date - timedelta(days=730)
@@ -41,9 +53,13 @@ data = {
 # Convertir a DataFrame
 df = pd.DataFrame(data)
 
-# Agregar precio unitario y total
-df['unit_price'] = df['product_id'].map(products)
+# Agregar precio, costo y categoría
+df['unit_price'] = df['product_id'].map(lambda x: products[x]['precio'])
+df['unit_cost'] = df['product_id'].map(lambda x: products[x]['costo'])
+df['category'] = df['product_id'].map(lambda x: products[x]['categoria'])
 df['total_amount'] = df['quantity'] * df['unit_price']
+df['total_cost'] = df['quantity'] * df['unit_cost']
+df['margin'] = df['total_amount'] - df['total_cost']
 
 # Ordenar por fecha
 df = df.sort_values('transaction_date')
