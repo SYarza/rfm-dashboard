@@ -356,14 +356,47 @@ app.layout = html.Div([
                         id='abc-bcg-table',
                         columns=[
                             {'name': 'Producto', 'id': 'product_id'},
-                            {'name': 'Ventas Totales', 'id': 'total_amount'},
-                            {'name': 'Margen', 'id': 'margin'},
+                            {'name': 'Ventas Totales ($)', 'id': 'total_amount', 'type': 'numeric', 'format': {'specifier': ',.2f'}},
+                            {'name': 'Margen ($)', 'id': 'margin', 'type': 'numeric', 'format': {'specifier': ',.2f'}},
+                            {'name': 'Participación (%)', 'id': 'market_share', 'type': 'numeric', 'format': {'specifier': '.2%'}},
+                            {'name': 'Crecimiento (%)', 'id': 'growth_rate', 'type': 'numeric', 'format': {'specifier': '.1f'}},
                             {'name': 'Clasificación ABC', 'id': 'clasificacion_abc'},
                             {'name': 'Categoría BCG', 'id': 'bcg_category'}
                         ],
+                        data=pd.merge(
+                            calculate_abc_analysis(df_transacciones),
+                            calculate_bcg_analysis(df_transacciones),
+                            on='product_id'
+                        ).to_dict('records'),
                         style_table={'overflowX': 'auto'},
                         style_cell={'textAlign': 'left', 'padding': '10px'},
                         style_header={'backgroundColor': 'paleturquoise', 'fontWeight': 'bold'},
+                        style_data_conditional=[
+                            {
+                                'if': {'row_index': 'odd'},
+                                'backgroundColor': 'rgb(248, 248, 248)'
+                            },
+                            {
+                                'if': {'column_id': 'bcg_category', 'filter_query': '{bcg_category} = "Estrella"'},
+                                'backgroundColor': '#ffeb3b',
+                                'fontWeight': 'bold'
+                            },
+                            {
+                                'if': {'column_id': 'bcg_category', 'filter_query': '{bcg_category} = "Vaca"'},
+                                'backgroundColor': '#4caf50',
+                                'color': 'white'
+                            },
+                            {
+                                'if': {'column_id': 'bcg_category', 'filter_query': '{bcg_category} = "Interrogante"'},
+                                'backgroundColor': '#2196f3',
+                                'color': 'white'
+                            },
+                            {
+                                'if': {'column_id': 'bcg_category', 'filter_query': '{bcg_category} = "Perro"'},
+                                'backgroundColor': '#f44336',
+                                'color': 'white'
+                            }
+                        ],
                         page_size=10,
                         sort_action='native'
                     )
