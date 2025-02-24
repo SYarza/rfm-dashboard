@@ -72,6 +72,53 @@ def create_radar_chart():
     )
     return fig
 
+# Agregar cálculos para análisis ABC
+def calculate_abc_analysis(df):
+    # Análisis por producto
+    product_metrics = df.groupby('product_id').agg({
+        'total_amount': 'sum',
+        'margin': 'sum',
+        'quantity': 'sum'
+    }).reset_index()
+    
+    # Calcular porcentajes acumulados
+    product_metrics = product_metrics.sort_values('total_amount', ascending=False)
+    product_metrics['porcentaje_ventas'] = product_metrics['total_amount'] / product_metrics['total_amount'].sum() * 100
+    product_metrics['porcentaje_acumulado'] = product_metrics['porcentaje_ventas'].cumsum()
+    
+    # Asignar clasificación ABC
+    product_metrics['clasificacion_abc'] = product_metrics['porcentaje_acumulado'].apply(
+        lambda x: 'A' if x <= 80 else ('B' if x <= 95 else 'C')
+    )
+    
+    return product_metrics
+
+# Cálculos para matriz BCG
+def calculate_bcg_analysis(df):
+    # Calcular crecimiento y participación relativa
+    product_metrics = df.groupby('product_id').agg({
+        'total_amount': 'sum',
+        'margin': 'sum',
+        'quantity': 'sum'
+    }).reset_index()
+    
+    # Calcular participación de mercado relativa (usando ventas totales como proxy)
+    total_market = product_metrics['total_amount'].sum()
+    product_metrics['market_share'] = product_metrics['total_amount'] / total_market
+    
+    # Calcular tasa de crecimiento (simulada para este ejemplo)
+    product_metrics['growth_rate'] = np.random.uniform(-20, 40, len(product_metrics))
+    
+    # Clasificar productos
+    product_metrics['bcg_category'] = product_metrics.apply(
+        lambda x: 'Estrella' if x['market_share'] > 0.1 and x['growth_rate'] > 10
+        else ('Vaca' if x['market_share'] > 0.1 and x['growth_rate'] <= 10
+        else ('Interrogante' if x['market_share'] <= 0.1 and x['growth_rate'] > 10
+        else 'Perro')), axis=1
+    )
+    
+    return product_metrics
+
 # Diseño del dashboard
 app.layout = html.Div([
     html.H1('Dashboard de Análisis de Ventas', style={'textAlign': 'center'}),
@@ -249,6 +296,60 @@ app.layout = html.Div([
                         style_cell={'textAlign': 'left', 'padding': '10px'},
                         style_header={'backgroundColor': 'paleturquoise', 'fontWeight': 'bold'},
                         style_data_conditional=[{'if': {'row_index': 'odd'}, 'backgroundColor': 'rgb(248, 248, 248)'}],
+                        page_size=10,
+                        sort_action='native'
+                    )
+                ])
+            ])
+        ]),
+        
+        # Nueva Pestaña de Análisis ABC/BCG
+        dcc.Tab(label='Análisis ABC/BCG', children=[
+            html.Div([
+                # Resumen ABC
+                html.Div([
+                    html.H3('Análisis ABC'),
+                    dcc.Graph(
+                        figure=px.pie(
+                            calculate_abc_analysis(df_transacciones),
+                            names='clasificacion_abc',
+                            values='total_amount',
+                            title='Distribución de Ventas por Clasificación ABC'
+                        )
+                    )
+                ]),
+                
+                # Matriz BCG
+                html.Div([
+                    html.H3('Matriz BCG'),
+                    dcc.Graph(
+                        figure=px.scatter(
+                            calculate_bcg_analysis(df_transacciones),
+                            x='market_share',
+                            y='growth_rate',
+                            size='total_amount',
+                            color='bcg_category',
+                            hover_data=['product_id'],
+                            title='Matriz BCG'
+                        )
+                    )
+                ]),
+                
+                # Tabla detallada
+                html.Div([
+                    html.H3('Detalles por Producto'),
+                    dash_table.DataTable(
+                        id='abc-bcg-table',
+                        columns=[
+                            {'name': 'Producto', 'id': 'product_id'},
+                            {'name': 'Ventas Totales', 'id': 'total_amount'},
+                            {'name': 'Margen', 'id': 'margin'},
+                            {'name': 'Clasificación ABC', 'id': 'clasificacion_abc'},
+                            {'name': 'Categoría BCG', 'id': 'bcg_category'}
+                        ],
+                        style_table={'overflowX': 'auto'},
+                        style_cell={'textAlign': 'left', 'padding': '10px'},
+                        style_header={'backgroundColor': 'paleturquoise', 'fontWeight': 'bold'},
                         page_size=10,
                         sort_action='native'
                     )
