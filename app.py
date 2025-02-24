@@ -5,6 +5,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
+import random
 
 # Leer los datos RFM
 rfm = pd.read_csv('resultados_rfm.csv')
@@ -95,25 +96,38 @@ def calculate_abc_analysis(df):
 
 # Cálculos para matriz BCG
 def calculate_bcg_analysis(df):
-    # Calcular crecimiento y participación relativa
+    # Calcular métricas por producto
     product_metrics = df.groupby('product_id').agg({
         'total_amount': 'sum',
         'margin': 'sum',
         'quantity': 'sum'
     }).reset_index()
     
-    # Calcular participación de mercado relativa (usando ventas totales como proxy)
+    # Calcular participación de mercado relativa
     total_market = product_metrics['total_amount'].sum()
     product_metrics['market_share'] = product_metrics['total_amount'] / total_market
     
-    # Calcular tasa de crecimiento (simulada para este ejemplo)
-    product_metrics['growth_rate'] = np.random.uniform(-20, 40, len(product_metrics))
+    # Calcular tasa de crecimiento (simulada pero más realista)
+    # Usamos una distribución que garantiza diferentes categorías
+    n_products = len(product_metrics)
+    growth_rates = []
+    for i in range(n_products):
+        if i < n_products * 0.2:  # Estrellas
+            growth_rates.append(random.uniform(15, 40))  # Alto crecimiento
+        elif i < n_products * 0.4:  # Vacas
+            growth_rates.append(random.uniform(-5, 10))  # Bajo crecimiento
+        elif i < n_products * 0.7:  # Interrogantes
+            growth_rates.append(random.uniform(15, 35))  # Alto crecimiento
+        else:  # Perros
+            growth_rates.append(random.uniform(-20, 5))  # Bajo o negativo crecimiento
     
-    # Clasificar productos
+    product_metrics['growth_rate'] = growth_rates
+    
+    # Ajustar umbrales para clasificación
     product_metrics['bcg_category'] = product_metrics.apply(
-        lambda x: 'Estrella' if x['market_share'] > 0.1 and x['growth_rate'] > 10
-        else ('Vaca' if x['market_share'] > 0.1 and x['growth_rate'] <= 10
-        else ('Interrogante' if x['market_share'] <= 0.1 and x['growth_rate'] > 10
+        lambda x: 'Estrella' if x['market_share'] >= 0.05 and x['growth_rate'] >= 15
+        else ('Vaca' if x['market_share'] >= 0.05 and x['growth_rate'] < 15
+        else ('Interrogante' if x['market_share'] < 0.05 and x['growth_rate'] >= 15
         else 'Perro')), axis=1
     )
     
